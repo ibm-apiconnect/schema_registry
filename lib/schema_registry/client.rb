@@ -40,6 +40,10 @@ module SchemaRegistry
       request(:get, "/schemas/ids/#{id}")['schema']
     end
 
+    def apicurio_schema(id)
+      JSON.dump request(:get, "/api/ids/#{id}", apicurio_schema_registry=true)
+    end
+
     def subjects
       data = request(:get, "/subjects")
       data.map { |subject| SchemaRegistry::Subject.new(self, subject) }
@@ -91,7 +95,7 @@ module SchemaRegistry
       options
     end
 
-    def request(method, path, body = nil)
+    def request(method, path, body = nil, apicurio_schema_registry=false)
 
       # build config for http client
       default_options = {
@@ -109,7 +113,7 @@ module SchemaRegistry
 
         request = request_class.new(@endpoint.path + path)
         request.basic_auth(username, password) if username && password
-        request['Accept'] = "application/vnd.schemaregistry.v1+json"
+        request['Accept'] = "application/vnd.schemaregistry.v1+json" unless apicurio_schema_registry == false
         if body
           request['Content-Type'] = "application/json"
           request.body = JSON.dump(body)
